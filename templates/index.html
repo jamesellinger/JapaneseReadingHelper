@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Japanese Reading Helper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+            transition: background-color 0.3s ease;
+        }
+
+        body.dark-mode {
+            background-color: #1a1a1a;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .dark-mode .container {
+            background-color: #2d2d2d;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Header Styles */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            flex-grow: 1;
+            transition: color 0.3s ease;
+        }
+
+        .dark-mode h1 {
+            color: #e0e0e0;
+        }
+
+        /* Toggle Switch Component */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background-color: #ccc;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .dark-mode .toggle-switch {
+            background-color: #4CAF50;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .dark-mode .toggle-slider {
+            transform: translateX(30px);
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            color: #555;
+            transition: color 0.3s ease;
+        }
+
+        .dark-mode .toggle-label {
+            color: #b0b0b0;
+        }
+
+        /* Collapsible Sections */
+        .collapsible-section {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .instructions {
+            background-color: #e3f2fd;
+            border-left-color: #2196F3;
+        }
+
+        .dark-mode .instructions {
+            background-color: #1e3a5f;
+            border-left-color: #4CAF50;
+        }
+
+        .settings {
+            background-color: #fff3e0;
+            border-left-color: #ff9800;
+            margin-bottom: 30px;
+        }
+
+        .dark-mode .settings {
+            background-color: #3a2e1e;
+            border-left-color: #ffa726;
+        }
+
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .collapsible-header strong {
+            color: #555;
+            transition: color 0.3s ease;
+        }
+
+        .dark-mode .collapsible-header strong {
+            color: #b0b0b0;
+        }
+
+        .collapse-icon {
+            font-size: 18px;
+            color: #555;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .dark-mode .collapse-icon {
+            color: #b0b0b0;
+        }
+
+        .collapse-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 200px;
+            overflow: hidden;
+            transition: max-height 0.3s ease, margin-top 0.3s ease;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            margin-top: 0;
+        }
+
+        .collapsible-content:not(.collapsed) {
+            margin-top: 10px;
+        }
+
+        .instructions p {
+            margin: 5px 0;
+            color: #555;
+            transition: color 0.3s ease;
+        }
+
+        .dark-mode .instructions p {
+            color: #b0b0b0;
+        }
+
+        /* Settings Items */
+        .settings-item {
+            margin: 10px 0;
+        }
+
+        .settings-item label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 5px;
+            font-weight: normal;
+        }
+
+        .settings-item input {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Field Containers */
+        .field-container {
+            margin-bottom: 30px;
+        }
+
+        .field-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .field-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #555;
+            transition: color 0.3s ease;
+        }
+
+        .dark-mode label {
+            color: #b0b0b0;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #2196F3;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            background-color: #1976D2;
+        }
+
+        .dark-mode .btn-primary {
+            background-color: #4CAF50;
+        }
+
+        .dark-mode .btn-primary:hover {
+            background-color: #388E3C;
+        }
+
+        .btn-primary:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .dark-mode .btn-primary:disabled {
+            background-color: #555;
+        }
+
+        .clear-button {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .clear-button:hover {
+            background-color: #f0f0f0;
+            color: #d32f2f;
+        }
+
+        .dark-mode .clear-button {
+            color: #999;
+        }
+
+        .dark-mode .clear-button:hover {
+            background-color: #444;
+            color: #ff6b6b;
+        }
+
+        /* WebSocket Controls */
+        .websocket-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .websocket-url-input {
+            padding: 6px 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            width: 200px;
+            background-color: white;
+            color: #333;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        .dark-mode .websocket-url-input {
+            background-color: #1a1a1a;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        .websocket-url-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .websocket-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .websocket-toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background-color: #ccc;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .websocket-toggle-switch.active {
+            background-color: #4CAF50;
+        }
+
+        .websocket-toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .websocket-toggle-switch.active .websocket-toggle-slider {
+            transform: translateX(26px);
+        }
+
+        .websocket-toggle-label {
+            font-size: 13px;
+            color: #555;
+            transition: color 0.3s ease;
+        }
+
+        .dark-mode .websocket-toggle-label {
+            color: #b0b0b0;
+        }
+
+        .websocket-status {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .dark-mode .websocket-status {
+            color: #999;
+        }
+
+        .websocket-status.connected {
+            color: #4CAF50;
+        }
+
+        .dark-mode .websocket-status.connected {
+            color: #66bb6a;
+        }
+
+        .websocket-status.error {
+            color: #d32f2f;
+        }
+
+        .dark-mode .websocket-status.error {
+            color: #ff6b6b;
+        }
+
+        /* Text Fields */
+        #contextField {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            resize: vertical;
+            background-color: #fafafa;
+            color: #333;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        .dark-mode #contextField {
+            background-color: #1a1a1a;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        #contextField:focus {
+            outline: none;
+            border-color: #4CAF50;
+            background-color: white;
+        }
+
+        .dark-mode #contextField:focus {
+            background-color: #252525;
+        }
+
+        .output-field {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            overflow-y: auto;
+            line-height: 1.8;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        .dark-mode .output-field {
+            background-color: #1a1a1a;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        /* Query Info Section */
+        .query-info {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .dark-mode .query-info {
+            border-bottom-color: #555;
+        }
+
+        .query-section {
+            margin-bottom: 15px;
+        }
+
+        .query-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .query-label {
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .dark-mode .query-label {
+            color: #4CAF50;
+        }
+
+        .query-content {
+            padding-left: 15px;
+            font-style: italic;
+            color: #555;
+        }
+
+        .dark-mode .query-content {
+            color: #b0b0b0;
+        }
+
+        /* Explanation Content */
+        .explanation-content {
+            color: #333;
+        }
+
+        .dark-mode .explanation-content {
+            color: #e0e0e0;
+        }
+
+        /* Markdown Styling */
+        .output-field strong {
+            font-weight: bold;
+            color: #2196F3;
+        }
+
+        .dark-mode .output-field strong {
+            color: #4CAF50;
+        }
+
+        .output-field em {
+            font-style: italic;
+            color: #666;
+        }
+
+        .dark-mode .output-field em {
+            color: #aaa;
+        }
+
+        .output-field code {
+            background-color: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #d32f2f;
+        }
+
+        .dark-mode .output-field code {
+            background-color: #3a3a3a;
+            color: #ff6b6b;
+        }
+
+        /* Status Messages */
+        .status-message {
+            font-style: italic;
+        }
+
+        .loading {
+            color: #666;
+        }
+
+        .dark-mode .loading {
+            color: #999;
+        }
+
+        .error {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .dark-mode .error {
+            color: #ff6b6b;
+        }
+
+        /* Selection Highlight */
+        ::selection {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <h1>Japanese Reading Helper</h1>
+            <div class="theme-toggle">
+                <span class="toggle-label">Dark Mode</span>
+                <div class="toggle-switch" id="themeToggle">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="collapsible-section instructions">
+            <div class="collapsible-header" id="instructionsHeader">
+                <strong>Instructions</strong>
+                <span class="collapse-icon" id="instructionsIcon">▼</span>
+            </div>
+            <div class="collapsible-content" id="instructionsContent">
+                <p>1. Configure WebSocket URL in Settings and enable monitoring (or paste text manually into the Input box)</p>
+                <p>2. From the Input box, highlight any word or phrase with your mouse</p>
+                <p>3. Right-click on the selected text to get an explanation</p>
+                <p>4. Click Translate to get a translation</p>
+            </div>
+        </div>
+
+        <div class="collapsible-section settings">
+            <div class="collapsible-header" id="settingsHeader">
+                <strong>Settings</strong>
+                <span class="collapse-icon" id="settingsIcon">▼</span>
+            </div>
+            <div class="collapsible-content" id="settingsContent">
+                <div class="settings-item">
+                    <label for="websocketUrl">WebSocket URL:</label>
+                    <input 
+                        type="text" 
+                        class="websocket-url-input" 
+                        id="websocketUrl" 
+                        placeholder="ws://localhost:6677"
+                        value="ws://localhost:6677"
+                    />
+                </div>
+            </div>
+        </div>
+
+        <div class="field-container">
+            <div class="field-header">
+                <label for="contextField">Input</label>
+                <div class="websocket-controls">
+                    <div class="websocket-toggle">
+                        <span class="websocket-toggle-label">Monitor WebSocket</span>
+                        <div class="websocket-toggle-switch" id="websocketToggle">
+                            <div class="websocket-toggle-slider"></div>
+                        </div>
+                    </div>
+                    <span class="websocket-status" id="websocketStatus">Disconnected</span>
+                </div>
+            </div>
+            <textarea id="contextField" placeholder="Text will appear here from WebSocket or paste manually..."></textarea>
+            <button class="btn btn-primary" id="translateButton">Translate</button>
+        </div>
+
+        <div class="field-container">
+            <div class="field-header">
+                <div class="field-header-left">
+                    <label for="explanationField">AI-assisted Explanation</label>
+                    <button class="clear-button" id="clearExplanation" title="Clear explanation">×</button>
+                </div>
+            </div>
+            <div class="output-field" id="explanationField">
+                <span class="status-message">Explanations will appear here...</span>
+            </div>
+        </div>
+
+        <div class="field-container">
+            <div class="field-header">
+                <div class="field-header-left">
+                    <label for="translationField">DeepL Translation</label>
+                    <button class="clear-button" id="clearTranslation" title="Clear translation">×</button>
+                </div>
+            </div>
+            <div class="output-field" id="translationField">
+                <span class="status-message">Translations will appear here...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const CONFIG = {
+            storageKeys: {
+                theme: 'theme',
+                instructionsCollapsed: 'instructionsCollapsed',
+                settingsCollapsed: 'settingsCollapsed',
+                websocketUrl: 'websocketUrl'
+            },
+            defaultMessages: {
+                explanation: '<span class="status-message">Explanations will appear here...</span>',
+                translation: '<span class="status-message">Translations will appear here...</span>',
+                loading: '<span class="status-message loading">Loading...</span>',
+                translating: '<span class="status-message loading">Translating...</span>'
+            }
+        };
+
+        // Simple markdown parser
+        function parseMarkdown(text) {
+            return text
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/__(.+?)__/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/_(.+?)_/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+
+        // HTML escape function
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Template for explanation field
+        function createExplanationTemplate(context, word, explanation) {
+            return `
+                <div class="query-info">
+                    <div class="query-section">
+                        <span class="query-label">Context:</span>
+                        <div class="query-content">${escapeHtml(context)}</div>
+                    </div>
+                    <div class="query-section">
+                        <span class="query-label">Word/Phrase:</span>
+                        <div class="query-content">${escapeHtml(word)}</div>
+                    </div>
+                </div>
+                <div class="explanation-content">
+                    <span class="query-label">Explanation:</span>
+                    <div>${parseMarkdown(escapeHtml(explanation))}</div>
+                </div>
+            `;
+        }
+
+        // Format WebSocket text
+        function formatWebSocketText(text) {
+            return text
+                .replace(/[\r\n]+/g, '')
+                .replace(/\u3000/g, '')
+                .replace(/[\u0000\u200B\u00A0]/g, '')
+                .trim();
+        }
+
+        // DOM Elements
+        const elements = {
+            contextField: document.getElementById('contextField'),
+            explanationField: document.getElementById('explanationField'),
+            translationField: document.getElementById('translationField'),
+            translateButton: document.getElementById('translateButton'),
+            clearExplanation: document.getElementById('clearExplanation'),
+            clearTranslation: document.getElementById('clearTranslation'),
+            themeToggle: document.getElementById('themeToggle'),
+            instructionsHeader: document.getElementById('instructionsHeader'),
+            instructionsContent: document.getElementById('instructionsContent'),
+            instructionsIcon: document.getElementById('instructionsIcon'),
+            settingsHeader: document.getElementById('settingsHeader'),
+            settingsContent: document.getElementById('settingsContent'),
+            settingsIcon: document.getElementById('settingsIcon'),
+            websocketToggle: document.getElementById('websocketToggle'),
+            websocketStatus: document.getElementById('websocketStatus'),
+            websocketUrl: document.getElementById('websocketUrl')
+        };
+
+        // State
+        let state = {
+            ws: null,
+            websocketMonitoring: false,
+            lastContextValue: ''
+        };
+
+        // Initialize app
+        function init() {
+            loadSavedSettings();
+            attachEventListeners();
+        }
+
+        // Load saved settings
+        function loadSavedSettings() {
+            // Theme
+            if (localStorage.getItem(CONFIG.storageKeys.theme) === 'dark') {
+                document.body.classList.add('dark-mode');
+            }
+
+            // Instructions collapsed state
+            if (localStorage.getItem(CONFIG.storageKeys.instructionsCollapsed) === 'true') {
+                elements.instructionsContent.classList.add('collapsed');
+                elements.instructionsIcon.classList.add('collapsed');
+            }
+
+            // Settings collapsed state
+            if (localStorage.getItem(CONFIG.storageKeys.settingsCollapsed) === 'true') {
+                elements.settingsContent.classList.add('collapsed');
+                elements.settingsIcon.classList.add('collapsed');
+            }
+
+            // WebSocket URL
+            const savedWsUrl = localStorage.getItem(CONFIG.storageKeys.websocketUrl);
+            if (savedWsUrl) {
+                elements.websocketUrl.value = savedWsUrl;
+            }
+        }
+
+        // Attach event listeners
+        function attachEventListeners() {
+            // Theme toggle
+            elements.themeToggle.addEventListener('click', toggleTheme);
+
+            // Collapsible sections
+            elements.instructionsHeader.addEventListener('click', () => 
+                toggleCollapsible(elements.instructionsContent, elements.instructionsIcon, CONFIG.storageKeys.instructionsCollapsed)
+            );
+            elements.settingsHeader.addEventListener('click', () => 
+                toggleCollapsible(elements.settingsContent, elements.settingsIcon, CONFIG.storageKeys.settingsCollapsed)
+            );
+
+            // Clear buttons
+            elements.clearExplanation.addEventListener('click', () => 
+                elements.explanationField.innerHTML = CONFIG.defaultMessages.explanation
+            );
+            elements.clearTranslation.addEventListener('click', () => 
+                elements.translationField.innerHTML = CONFIG.defaultMessages.translation
+            );
+
+            // Auto-clear on input change
+            elements.contextField.addEventListener('input', handleContextChange);
+
+            // WebSocket
+            elements.websocketUrl.addEventListener('change', () => 
+                localStorage.setItem(CONFIG.storageKeys.websocketUrl, elements.websocketUrl.value)
+            );
+            elements.websocketToggle.addEventListener('click', toggleWebSocket);
+
+            // Context field right-click
+            elements.contextField.addEventListener('contextmenu', handleContextMenu);
+
+            // Translate button
+            elements.translateButton.addEventListener('click', handleTranslate);
+        }
+
+        // Toggle theme
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem(CONFIG.storageKeys.theme, isDark ? 'dark' : 'light');
+        }
+
+        // Toggle collapsible section
+        function toggleCollapsible(contentElement, iconElement, storageKey) {
+            contentElement.classList.toggle('collapsed');
+            iconElement.classList.toggle('collapsed');
+            const isCollapsed = contentElement.classList.contains('collapsed');
+            localStorage.setItem(storageKey, isCollapsed);
+        }
+
+        // Handle context field changes
+        function handleContextChange() {
+            const currentValue = elements.contextField.value;
+            if (currentValue !== state.lastContextValue && state.lastContextValue !== '') {
+                elements.explanationField.innerHTML = CONFIG.defaultMessages.explanation;
+                elements.translationField.innerHTML = CONFIG.defaultMessages.translation;
+            }
+            state.lastContextValue = currentValue;
+        }
+
+        // WebSocket functions
+        function toggleWebSocket() {
+            if (state.websocketMonitoring) {
+                disconnectWebSocket();
+            } else {
+                connectWebSocket();
+            }
+        }
+
+        function connectWebSocket() {
+            const url = elements.websocketUrl.value.trim();
+            
+            if (!url) {
+                updateWebSocketStatus('Please enter WebSocket URL', 'error');
+                return;
+            }
+
+            try {
+                updateWebSocketStatus('Connecting...', '');
+                state.ws = new WebSocket(url);
+
+                state.ws.onopen = () => {
+                    state.websocketMonitoring = true;
+                    elements.websocketToggle.classList.add('active');
+                    updateWebSocketStatus('Connected', 'connected');
+                };
+
+                state.ws.onmessage = (event) => {
+                    const formattedText = formatWebSocketText(event.data);
+                    
+                    if (formattedText !== state.lastContextValue) {
+                        elements.explanationField.innerHTML = CONFIG.defaultMessages.explanation;
+                        elements.translationField.innerHTML = CONFIG.defaultMessages.translation;
+                    }
+                    
+                    elements.contextField.value = formattedText;
+                    state.lastContextValue = formattedText;
+                };
+
+                state.ws.onerror = () => {
+                    updateWebSocketStatus('Connection Error', 'error');
+                };
+
+                state.ws.onclose = () => {
+                    state.websocketMonitoring = false;
+                    elements.websocketToggle.classList.remove('active');
+                    updateWebSocketStatus('Disconnected', '');
+                };
+
+            } catch (error) {
+                updateWebSocketStatus('Connection Failed', 'error');
+            }
+        }
+
+        function disconnectWebSocket() {
+            if (state.ws) {
+                state.ws.close();
+                state.ws = null;
+            }
+            state.websocketMonitoring = false;
+            elements.websocketToggle.classList.remove('active');
+            updateWebSocketStatus('Disconnected', '');
+        }
+
+        function updateWebSocketStatus(text, className) {
+            elements.websocketStatus.textContent = text;
+            elements.websocketStatus.className = `websocket-status ${className}`;
+        }
+
+        // Handle context menu (right-click)
+        function handleContextMenu(e) {
+           
+            e.preventDefault();
+            
+            const selectedText = window.getSelection().toString().trim();
+            
+            if (selectedText) {
+                const context = elements.contextField.value;
+                explainWord(context, selectedText);
+            } else {
+                elements.explanationField.innerHTML = '<span class="status-message error">Please select a word or phrase first.</span>';
+            }
+        }
+
+        // Explain word
+        async function explainWord(context, word) {
+            elements.explanationField.innerHTML = CONFIG.defaultMessages.loading;
+
+            try {
+                const response = await fetch('/explain', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ context, word })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    elements.explanationField.innerHTML = createExplanationTemplate(context, word, data.explanation);
+                } else {
+                    elements.explanationField.innerHTML = `<span class="status-message error">Error: ${escapeHtml(data.error || 'Unknown error occurred')}</span>`;
+                }
+            } catch (error) {
+                elements.explanationField.innerHTML = `<span class="status-message error">Error: Failed to connect to server - ${escapeHtml(error.message)}</span>`;
+            }
+        }
+
+        // Handle translate
+        async function handleTranslate() {
+            const context = elements.contextField.value.trim();
+            
+            if (!context) {
+                elements.translationField.innerHTML = '<span class="status-message error">Please enter text to translate.</span>';
+                return;
+            }
+
+            elements.translationField.innerHTML = CONFIG.defaultMessages.translating;
+            elements.translateButton.disabled = true;
+
+            try {
+                const response = await fetch('/translate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ context })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    elements.translationField.textContent = data.translation;
+                } else {
+                    elements.translationField.innerHTML = `<span class="status-message error">Error: ${escapeHtml(data.error || 'Unknown error occurred')}</span>`;
+                }
+            } catch (error) {
+                elements.translationField.innerHTML = `<span class="status-message error">Error: Failed to connect to server - ${escapeHtml(error.message)}</span>`;
+            } finally {
+                elements.translateButton.disabled = false;
+            }
+        }
+
+        // Initialize app
+        init();
+    </script>
+</body>
+</html>

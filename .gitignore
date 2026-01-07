@@ -1,0 +1,10 @@
+# Virtual environment
+/venv/
+/env/
+
+# MacOS custom attributes file
+.DS_Store
+
+# Folders created when running the application
+/explanation_history/
+/translation_history/
