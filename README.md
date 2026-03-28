@@ -2,6 +2,7 @@ Goals/reasons/purpose for creating application: built for my personal study of J
 
 - uses OpenRouter and sends request to OpenAI for AI-assisted reading
 - uses DeepL for translation
+- option to use [Sugoi LLM](https://huggingface.co/collections/sugoitoolkit/sugoillm) via [LM Studio](https://lmstudio.ai) (code could also be altered to use another local model or tool such as [Ollama](https://ollama.com))
 
 Ways to use:
 
@@ -46,6 +47,8 @@ python app.python
 
 Open a web browser then navigate to the URL shown in the terminal (probably: `http://127.0.0.1:5000`)
 
+Use the Settings dropdown menu to change the source of Explanation and/or Translation
+
 ## Misc
 
 Prompt is the same as the one used by the [Language Reactor](https://www.languagereactor.com) Netflix plugin:
@@ -53,3 +56,15 @@ Prompt is the same as the one used by the [Language Reactor](https://www.languag
 ```
 Please explain the use of the word '{word}' in this sentence: {context}
 ```
+
+If using Sugoi LLM, make sure LM Studio is running and in server mode before launching this application. I have the inference parameters set as follows:
+
+ Parameter | Value |
+| --------- | ----- |
+| Temperature | 0\.2 | 
+| Top-K | 40 | 
+| Top-P | 0\.95 | 
+| Min-P | 0\.05 | 
+| Repeat Penalty | 1\.1 |
+
+The System Prompt is hardcoded in the application, so it doesn't actaully need to be set in LM Studio.

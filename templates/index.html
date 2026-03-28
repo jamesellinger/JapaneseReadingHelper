@@ -200,9 +200,68 @@
             font-weight: normal;
         }
 
-        .settings-item input {
+        .settings-item input,
+        .settings-item select {
             width: 100%;
             max-width: 400px;
+        }
+
+        .settings-item select {
+            padding: 6px 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            background-color: white;
+            color: #333;
+            cursor: pointer;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        .dark-mode .settings-item select {
+            background-color: #1a1a1a;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        .settings-item select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .model-select-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .model-select-wrapper select {
+            flex: 1;
+        }
+
+        .llm-status {
+            font-size: 20px;
+            min-width: 24px;
+        }
+
+        .llm-status.testing {
+            color: #ff9800;
+        }
+
+        .llm-status.connected {
+            color: #4CAF50;
+        }
+
+        .llm-status.error {
+            color: #d32f2f;
+            cursor: help;
+        }
+
+        .dark-mode .llm-status.connected {
+            color: #66bb6a;
+        }
+
+        .dark-mode .llm-status.error {
+            color: #ff6b6b;
         }
 
         /* Field Containers */
@@ -608,6 +667,26 @@
                         value="ws://localhost:6677"
                     />
                 </div>
+                <div class="settings-item">
+                    <label for="explanationModel">Explanation Source:</label>
+                    <div class="model-select-wrapper">
+                        <select id="explanationModel">
+                            <option value="openrouter">OpenRouter</option>
+                            <option value="local_llm">Sugoi LLM</option>
+                        </select>
+                        <span class="llm-status" id="explanationLlmStatus"></span>
+                    </div>
+                </div>
+                <div class="settings-item">
+                    <label for="translationModel">Translation Source:</label>
+                    <div class="model-select-wrapper">
+                        <select id="translationModel">
+                            <option value="deepl">DeepL</option>
+                            <option value="local_llm">Sugoi LLM</option>
+                        </select>
+                        <span class="llm-status" id="translationLlmStatus"></span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -660,7 +739,9 @@
                 theme: 'theme',
                 instructionsCollapsed: 'instructionsCollapsed',
                 settingsCollapsed: 'settingsCollapsed',
-                websocketUrl: 'websocketUrl'
+                websocketUrl: 'websocketUrl',
+                explanationModel: 'explanationModel',
+                translationModel: 'translationModel'
             },
             defaultMessages: {
                 explanation: '<span class="status-message">Explanations will appear here...</span>',
@@ -734,7 +815,11 @@
             settingsIcon: document.getElementById('settingsIcon'),
             websocketToggle: document.getElementById('websocketToggle'),
             websocketStatus: document.getElementById('websocketStatus'),
-            websocketUrl: document.getElementById('websocketUrl')
+            websocketUrl: document.getElementById('websocketUrl'),
+            explanationModel: document.getElementById('explanationModel'),
+            translationModel: document.getElementById('translationModel'),
+            explanationLlmStatus: document.getElementById('explanationLlmStatus'),
+            translationLlmStatus: document.getElementById('translationLlmStatus')
         };
 
         // State
@@ -743,6 +828,51 @@
             websocketMonitoring: false,
             lastContextValue: ''
         };
+
+        // Test Local LLM connection
+        async function testLocalLLM() {
+            try {
+                const response = await fetch('/test_local_llm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                return { status: data.status, message: data.message };
+            } catch (error) {
+                return { 
+                    status: 'error', 
+                    message: 'Cannot connect to server. Please check that Flask is running.' 
+                };
+            }
+        }
+
+        // Update LLM status indicator
+        async function updateLLMStatus(selectElement, statusElement) {
+            if (selectElement.value !== 'local_llm') {
+                statusElement.textContent = '';
+                statusElement.className = 'llm-status';
+                statusElement.title = '';
+                return;
+            }
+
+            // Show testing indicator
+            statusElement.textContent = '⏳';
+            statusElement.className = 'llm-status testing';
+            statusElement.title = 'Testing connection...';
+
+            const result = await testLocalLLM();
+
+            if (result.status === 'connected') {
+                statusElement.textContent = '✓';
+                statusElement.className = 'llm-status connected';
+                statusElement.title = 'Connected to Local LLM';
+            } else {
+                statusElement.textContent = '✗';
+                statusElement.className = 'llm-status error';
+                statusElement.title = result.message || 'Connection failed';
+            }
+        }
 
         // Initialize app
         function init() {
@@ -774,6 +904,22 @@
             if (savedWsUrl) {
                 elements.websocketUrl.value = savedWsUrl;
             }
+
+            // Explanation Model
+            const savedExplanationModel = localStorage.getItem(CONFIG.storageKeys.explanationModel);
+            if (savedExplanationModel) {
+                elements.explanationModel.value = savedExplanationModel;
+            }
+
+            // Translation Model
+            const savedTranslationModel = localStorage.getItem(CONFIG.storageKeys.translationModel);
+            if (savedTranslationModel) {
+                elements.translationModel.value = savedTranslationModel;
+            }
+
+            // Test LLM connections on load
+            updateLLMStatus(elements.explanationModel, elements.explanationLlmStatus);
+            updateLLMStatus(elements.translationModel, elements.translationLlmStatus);
         }
 
         // Attach event listeners
@@ -805,6 +951,16 @@
                 localStorage.setItem(CONFIG.storageKeys.websocketUrl, elements.websocketUrl.value)
             );
             elements.websocketToggle.addEventListener('click', toggleWebSocket);
+
+            // Model selections
+            elements.explanationModel.addEventListener('change', () => {
+                localStorage.setItem(CONFIG.storageKeys.explanationModel, elements.explanationModel.value);
+                updateLLMStatus(elements.explanationModel, elements.explanationLlmStatus);
+            });
+            elements.translationModel.addEventListener('change', () => {
+                localStorage.setItem(CONFIG.storageKeys.translationModel, elements.translationModel.value);
+                updateLLMStatus(elements.translationModel, elements.translationLlmStatus);
+            });
 
             // Context field right-click
             elements.contextField.addEventListener('contextmenu', handleContextMenu);
@@ -909,7 +1065,7 @@
 
         // Handle context menu (right-click)
         function handleContextMenu(e) {
-           
+            
             e.preventDefault();
             
             const selectedText = window.getSelection().toString().trim();
@@ -927,10 +1083,16 @@
             elements.explanationField.innerHTML = CONFIG.defaultMessages.loading;
 
             try {
+                const selectedModel = elements.explanationModel.value;
+                
                 const response = await fetch('/explain', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ context, word })
+                    body: JSON.stringify({ 
+                        context, 
+                        word,
+                        model: selectedModel 
+                    })
                 });
 
                 const data = await response.json();
@@ -941,7 +1103,14 @@
                     elements.explanationField.innerHTML = `<span class="status-message error">Error: ${escapeHtml(data.error || 'Unknown error occurred')}</span>`;
                 }
             } catch (error) {
-                elements.explanationField.innerHTML = `<span class="status-message error">Error: Failed to connect to server - ${escapeHtml(error.message)}</span>`;
+                const selectedModel = elements.explanationModel.value;
+                let errorMsg = `Error: Failed to connect to server - ${escapeHtml(error.message)}`;
+                
+                if (selectedModel === 'local_llm') {
+                    errorMsg = `Error: Cannot connect to Local LLM. Please ensure LM Studio is running at the configured URL and the correct model is loaded.`;
+                }
+                
+                elements.explanationField.innerHTML = `<span class="status-message error">${errorMsg}</span>`;
             }
         }
 
@@ -958,10 +1127,15 @@
             elements.translateButton.disabled = true;
 
             try {
+                const selectedModel = elements.translationModel.value;
+                
                 const response = await fetch('/translate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ context })
+                    body: JSON.stringify({ 
+                        context,
+                        model: selectedModel 
+                    })
                 });
 
                 const data = await response.json();
@@ -972,7 +1146,14 @@
                     elements.translationField.innerHTML = `<span class="status-message error">Error: ${escapeHtml(data.error || 'Unknown error occurred')}</span>`;
                 }
             } catch (error) {
-                elements.translationField.innerHTML = `<span class="status-message error">Error: Failed to connect to server - ${escapeHtml(error.message)}</span>`;
+                const selectedModel = elements.translationModel.value;
+                let errorMsg = `Error: Failed to connect to server - ${escapeHtml(error.message)}`;
+                
+                if (selectedModel === 'local_llm') {
+                    errorMsg = `Error: Cannot connect to Local LLM. Please ensure LM Studio is running at the configured URL and the correct model is loaded.`;
+                }
+                
+                elements.translationField.innerHTML = `<span class="status-message error">${errorMsg}</span>`;
             } finally {
                 elements.translateButton.disabled = false;
             }
